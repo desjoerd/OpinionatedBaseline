@@ -1,0 +1,22 @@
+jobs:
+  - job: version
+    displayName: 🏷 Version
+    steps:
+      - checkout: self
+        fetchDepth: 0
+
+      - template: ./prepare-dotnet.yml
+
+      - task: DotNetCoreCLI@2
+        name: GitVersionTask
+        displayName: "Set the Azure Pipelines metadata using Nerdbank.GitVersioning"
+        inputs:
+          command: "custom"
+          custom: "nbgv"
+          arguments: "cloud --all-vars"
+
+      # Output the semver2 from NBGV
+      - powershell: |
+          Write-Host "##vso[task.setvariable variable=SemVer2;isoutput=true]$(NBGV_SemVer2)"
+        name: GitVersionOutput
+        displayName: Output NBGV_SemVer2 to SemVer2

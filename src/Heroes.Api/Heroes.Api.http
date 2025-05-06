@@ -1,0 +1,48 @@
+
+
+GET https://localhost:7237/heroes
+Accept: application/json
+
+###
+
+POST https://localhost:7237/heroes
+Content-Type: application/json
+
+{
+  "name": "Spider-Man",
+  "realName": "Peter Parker",
+  "power": "Wall-crawling",
+  "originStory": "Bitten by a radioactive spider, high school student Peter Parker gained the speed, strength and powers of a spider. Adopting the name Spider-Man, Peter hoped to start a career using his new abilities."
+}
+
+
+###
+
+GET https://localhost:7237/heroes/spider-man
+Accept: application/json
+
+###
+
+PUT https://localhost:7237/heroes/spider-man
+Content-Type: application/json
+
+{
+  "realName": "Peter Parker",
+  "power": "Web-slinging",
+  "originStory": "Bitten by a radioactive spider, high school student Peter Parker gained the speed, strength and powers of a spider. Adopting the name Spider-Man, Peter hoped to start a career using his new abilities."
+}
+
+###
+
+PUT https://localhost:7237/heroes/spider-man
+Content-Type: application/json
+
+{
+  "realName": "Peter Parker",
+  "power": "Wall-crawling",
+  "originStory": "Bitten by a radioactive spider, high school student Peter Parker gained the speed, strength and powers of a spider. Adopting the name Spider-Man, Peter hoped to start a career using his new abilities."
+}
+
+###
+
+DELETE https://localhost:7237/heroes/spider-man

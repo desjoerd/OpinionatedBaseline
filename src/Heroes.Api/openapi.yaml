@@ -1,0 +1,241 @@
+openapi: 3.0.4
+info:
+  title: 'Heroes.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
+  version: '1.0'
+paths:
+  /heroes:
+    get:
+      tags:
+        - Heroes
+      operationId: GetHeroes
+      parameters:
+        - name: Skip
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Take
+          in: query
+          schema:
+            maximum: 100
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeroesResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/HttpValidationProblemDetails'
+    post:
+      tags:
+        - Heroes
+      operationId: CreateHero
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHeroRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json: { }
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/HttpValidationProblemDetails'
+  '/heroes/{id}':
+    get:
+      tags:
+        - Heroes
+      operationId: GetHero
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeroResponse'
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - Heroes
+      operationId: UpdateHero
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHeroRequest'
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/HttpValidationProblemDetails'
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - Heroes
+      operationId: DeleteHero
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+components:
+  schemas:
+    CreateHeroRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          maxLength: 50
+          minLength: 1
+          type: string
+        realName:
+          maxLength: 50
+          type: string
+          nullable: true
+        power:
+          maxLength: 20
+          type: string
+          nullable: true
+        originStory:
+          maxLength: 1000
+          type: string
+          nullable: true
+      additionalProperties: false
+    HeroResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        realName:
+          type: string
+          nullable: true
+        power:
+          type: string
+          nullable: true
+        originStory:
+          type: string
+          nullable: true
+      additionalProperties: false
+    HeroesResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeroResponse'
+          nullable: true
+        total:
+          type: integer
+          format: int32
+        links:
+          $ref: '#/components/schemas/Links'
+      additionalProperties: false
+    HttpValidationProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          nullable: true
+      additionalProperties: { }
+    IdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Links:
+      type: object
+      properties:
+        next:
+          type: string
+          nullable: true
+      additionalProperties: false
+    UpdateHeroRequest:
+      type: object
+      properties:
+        realName:
+          maxLength: 50
+          type: string
+          nullable: true
+        power:
+          maxLength: 20
+          type: string
+          nullable: true
+        originStory:
+          maxLength: 1000
+          type: string
+          nullable: true
+      additionalProperties: false

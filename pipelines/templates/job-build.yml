@@ -1,0 +1,35 @@
+parameters:
+  - name: acrName
+    type: string
+
+jobs:
+  - job: BuildContainer
+    variables:
+      versionTag: $[ stageDependencies.version.version.outputs['GitVersionOutput.SemVer2'] ]
+    displayName: 🏗️ Build Container
+    steps:
+      - checkout: self
+        fetchDepth: 0
+
+      - template: ./prepare-dotnet.yml
+
+      - task: DotNetCoreCLI@2
+        displayName: "Publish build as container image"
+        inputs:
+          command: "publish"
+          publishWebProjects: false # default is true, it is set to false because the Api.Tests project is referencing the Web sdk which makes it a web project.
+          projects: |
+            src/Heroes.Api/Heroes.Api.csproj
+          arguments: "--configuration Release /t:PublishContainer"
+
+      - task: Docker@2
+        displayName: Docker Login
+        inputs:
+          containerRegistry: "${acrName}"
+          command: "login"
+
+      - powershell: |
+          Write-Information "Tagging container image localhost/heroes:$(versionTag) to ${acrName}.azurecr.io/heroes/api:$(versionTag)"
+          docker tag localhost/heroes:$(versionTag) ${acrName}.azurecr.io/heroes/api:$(versionTag)
+          docker push ${acrName}.azurecr.io/heroes/api:$(versionTag)
+        displayName: "Push container image with version tag"

@@ -1,0 +1,27 @@
+jobs:
+  - job: TestApp
+    displayName: 🧪 Test Application
+    steps:
+      - checkout: self
+        fetchDepth: 0
+
+      - template: ./prepare-dotnet.yml
+
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          command: build
+          projects: "**/*.csproj"
+          arguments: "--configuration Release"
+
+      - powershell: "git diff --exit-code"
+        displayName: "Fail on side-effects (git changes)"
+        failOnStderr: true
+
+      - task: DotNetCoreCLI@2
+        displayName: "Run all unit tests"
+        inputs:
+          command: "test"
+          projects: "**/*Tests.csproj"
+          arguments: '--no-build --configuration Release --collect "XPlat Code Coverage" --logger trx --filter "Category=Unit|Category=Integration"'
+          publishTestResults: true

@@ -1,0 +1,66 @@
+# Trigger the workflow on push or pull request,
+# but only for the main branch
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  shouldDeploy: ${{ and(in(variables['Build.Reason'], 'IndividualCI', 'Manual'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: version
+    displayName: 🏷 Version
+    jobs:
+      - template: templates/job-version.yml
+
+  - stage: build
+    displayName: 🛠 Build
+    dependsOn: version
+    jobs:
+      - template: templates/job-build.yml
+        parameters:
+          acrName: "your-acr-name"
+      - template: templates/job-test.yml
+
+  - ${{ if eq(variables['shouldDeploy'], true) }}:
+      - stage: deploy
+        displayName: 🚀 Deploy to Production
+        dependsOn:
+          - version
+          - build
+        jobs:
+          - deployment: apply_production
+            displayName: 🚀 Deploy to Production
+            environment: prod
+            variables:
+              versionTag: $[ stageDependencies.version.version.outputs['GitVersionOutput.SemVer2'] ]
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - checkout: self
+
+                    - task: AzureCLI@2
+                      name: DeployAzureInfra
+                      displayName: 🚢 Ship it
+                      inputs:
+                        azureSubscription: azure-prod
+                        scriptType: "bash"
+                        scriptLocation: "inlineScript"
+                        inlineScript: |
+                          az deployment group create \
+                          --resource-group 'rg-ne-heroes-prod' \
+                          --template-file deploy/main.bicep \
+                          -p env=prod \
+                          -p location=northeurope \
+                          -p loc=ne \
+                          -p version=$(versionTag)
